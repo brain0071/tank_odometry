@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="tank_odometry" type="tank_node.py" name="tank_node" clear_params="true" output="screen" >
+  </node>
+</launch>
