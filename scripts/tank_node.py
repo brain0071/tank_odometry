@@ -70,7 +70,8 @@ class TANK_Odometry():
         z_total = []
 
         for i, tag in enumerate(msg.detections):
-        
+            
+            
             tag_id = int(tag.id[0])
 
             index = np.where(self.tags[:, 0] == tag_id)
@@ -95,13 +96,16 @@ class TANK_Odometry():
             # rospy.loginfo("Detected Apriltags: %d, %f, %f, %f", 
                         # tag_id, self.tags[index, 1], self.tags[index, 2], self.tags[index, 3])
         
-        # 
+        current_time = time.time()
         x = sum(x_total) / len(x_total)
         y = sum(y_total) / len(y_total)
         z = sum(z_total) / len(z_total)
         
         # get velocity in body Coordinate system (update 5hz)
-        t = time.time() - self.last_time
+        t = current_time - self.last_time
+        
+        # rospy.loginfo("Last position: %f, %f, %f and time: %f", self.last_pos_tank[0], self.last_pos_tank[1], self.last_pos_tank[2], t)
+        
         vel_x_tank = (x - self.last_pos_tank[0]) / t
         vel_y_tank = (y - self.last_pos_tank[1]) / t
         vel_z_tank = (z - self.last_pos_tank[2]) / t
@@ -109,10 +113,8 @@ class TANK_Odometry():
         velocity = np.dot(np.linalg.pinv(self.rotation), 
                           np.array([vel_x_tank[0], vel_y_tank[0], vel_z_tank[0]]))
         
-        self.last_pos_tank[0] = x
-        self.last_pos_tank[1] = y
-        self.last_pos_tank[2] = z
-        self.last_time = time.time()
+        self.last_pos_tank = [x, y, z]
+        self.last_time = current_time
 
         # pos in tank
         pos_msg = Odometry()
@@ -120,7 +122,6 @@ class TANK_Odometry():
         pos_msg.pose.pose.position.y = y
         pos_msg.pose.pose.position.z = z
 
-        #NOTE: There is a steady-state error.
         pos_msg.twist.twist.linear.x = velocity[0]
         pos_msg.twist.twist.linear.y = velocity[1]
         pos_msg.twist.twist.linear.z = velocity[2]
