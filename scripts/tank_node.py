@@ -14,6 +14,10 @@ from numpy import genfromtxt
 
 
 class TANK_Odometry():
+    """
+    estimation position and velocity only use AprilTags
+    Xsens only for Coordinate system transformation 
+    """
     def __init__(self):
         
         rospack = rospkg.RosPack()
@@ -24,7 +28,7 @@ class TANK_Odometry():
         
         self.tank_pos_pub = rospy.Publisher('tank_pos_vel', Odometry, queue_size=1)
         
-        # update attitude and rotation 
+        # (Xsens)update attitude and rotation 
         rospy.Subscriber("/auto_grasp/filter/quaternion",QuaternionStamped,self.updateAtt_callback,
                          queue_size=1)           
         
@@ -55,6 +59,7 @@ class TANK_Odometry():
         self.att = q_enu
         self.rotation = self.q_to_rot_mat(self.att)
 
+    
     # estimate position in tank Coordinate system, and velocity in body Coordinate system 
     # NOTE: tank Coordinate system coincides with xsens Coordinate system
     def estimate_callback(self, msg):
