@@ -13,6 +13,7 @@ from tank_odometry.msg import AprilTagDetection
 from numpy import genfromtxt
 
 
+# use EKF
 class TANK_Odometry():
     """
     estimation position and velocity only use AprilTags
