@@ -22,7 +22,7 @@ class TANK_Odometry():
         
         rospack = rospkg.RosPack()
         
-        data_path = rospack.get_path("tank_odometry") + '/scripts/calibration_test.csv'  # in real tank
+        data_path = rospack.get_path("tank_odometry") + '/scripts/calibration_tank.csv'  # in real tank
         self.tags = genfromtxt(data_path, delimiter=',')  # home PC
         self.tags = self.tags[:, 0:4]
         
@@ -45,7 +45,6 @@ class TANK_Odometry():
 
     # Quaternion to rotation
     def q_to_rot_mat(self):
-
         qw, qx, qy, qz = self.att[0], self.att[1], self.att[2], self.att[3]
         rot_mat = np.array([
             [1 - 2 * (qy ** 2 + qz ** 2), 2 * (qx * qy - qw * qz), 2 * (qx * qz + qw * qy)],
@@ -70,13 +69,10 @@ class TANK_Odometry():
         z_total = []
 
         for i, tag in enumerate(msg.detections):
-            
-            
+                        
             tag_id = int(tag.id[0])
-
             index = np.where(self.tags[:, 0] == tag_id)
 
-            # From t265 camera Coordinate system  transform to tank Coordinate system (Xsens frame)
             # x:forward y:left  z:up
             y_body = tag.pos.x
             x_body = tag.pos.y
@@ -87,6 +83,7 @@ class TANK_Odometry():
             # Xsens Coordinate system  
             # https://mtidocs.movella.com/getting-started-2
             
+            # NOTE: From t265 camera Coordinate system  transform to tank Coordinate system (Xsens frame)        
             pos_tmp = np.dot(self.rotation, [x_body, y_body, z_body])  
             
             x_total.append(self.tags[index, 1] + pos_tmp[0]) 
@@ -97,6 +94,7 @@ class TANK_Odometry():
                         # tag_id, self.tags[index, 1], self.tags[index, 2], self.tags[index, 3])
         
         current_time = time.time()
+        
         x = sum(x_total) / len(x_total)
         y = sum(y_total) / len(y_total)
         z = sum(z_total) / len(z_total)
@@ -110,9 +108,10 @@ class TANK_Odometry():
         vel_y_tank = (y - self.last_pos_tank[1]) / t
         vel_z_tank = (z - self.last_pos_tank[2]) / t
         
-        velocity = np.dot(np.linalg.pinv(self.rotation), 
-                          np.array([vel_x_tank[0], vel_y_tank[0], vel_z_tank[0]]))
-        
+        velocity = [vel_x_tank, vel_y_tank, vel_z_tank]
+        # velocity = np.dot(np.linalg.pinv(self.rotation), 
+        #                   np.array([vel_x_tank[0], vel_y_tank[0], vel_z_tank[0]]))
+
         self.last_pos_tank = [x, y, z]
         self.last_time = current_time
 
