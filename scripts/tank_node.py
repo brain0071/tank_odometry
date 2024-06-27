@@ -11,6 +11,7 @@ from tank_odometry.msg import AprilTagDetectionArray
 from tank_odometry.msg import AprilTagDetection
 
 from numpy import genfromtxt
+import csv
 
 
 class TANK_Odometry():
@@ -131,6 +132,19 @@ class TANK_Odometry():
         rospy.loginfo("Current velocity: %f, %f, %f", 
                       pos_msg.twist.twist.linear.x, pos_msg.twist.twist.linear.y, pos_msg.twist.twist.linear.z)
         
+         # add csv log
+        new_row_pos_vel = {'time':current_time, 
+                            'x':x, 
+                            'y':y, 
+                            'z':z,
+                            'vel_x': vel_x_tank,
+                            'vel_y': vel_y_tank,
+                            'vel_z': vel_z_tank}
+        
+        with open('/home/dlmux/WorkSpace/data/Apriltag_test_mean.csv', 'a', newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=new_row_pos_vel.keys())
+            writer.writerow(new_row_pos_vel)
+    
         self.tank_pos_pub.publish(pos_msg)
 
 def main():
