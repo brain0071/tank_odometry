@@ -12,6 +12,7 @@ from tank_odometry.msg import AprilTagDetection
 
 from numpy import genfromtxt
 import ekf_class
+import csv
 
 
 # use EKF
@@ -43,6 +44,10 @@ class TANK_Odometry():
     # NOTE: tank Coordinate system coincides with xsens Coordinate system
     def estimate_callback(self, msg):
         
+        # use z-axis mean
+        global z_mean
+        z_total = []
+        
         current_time = time.time()
         self.ekf.prediction()
         # get length of message
@@ -52,12 +57,14 @@ class TANK_Odometry():
             # (num_meas, 4)
             measurements = np.zeros((num_meas, 1 + self.state_dim))
 
-
         for i, tag in enumerate(msg.detections):
             tag_id = int(tag.id[0])
-            tag_distance_cam = np.array(([tag.pose.pose.pose.position.x * 1.05,
-                                          tag.pose.pose.pose.position.y * 1.1,
-                                          tag.pose.pose.pose.position.z]))
+            tag_distance_cam = np.array(([tag.pos.x * 1.05,
+                                          tag.pos.y * 1.1,
+                                          tag.pos.z]))
+            #
+            z_total.append(tag.pos.z)
+            
             measurements[i, 0] = np.linalg.norm(tag_distance_cam)
             
             
@@ -70,8 +77,12 @@ class TANK_Odometry():
         
         x = estimated_position[0]
         y = estimated_position[1]
-        z = estimated_position[2]    
-    
+        # z = estimated_position[2]
+        
+        # z-axis use mean
+        z_mean = sum(z_total) / len(z_total)
+        z = z_mean
+        
         # get velocity in body Coordinate system (update 5hz)
         t = current_time - self.last_time
         
@@ -103,6 +114,19 @@ class TANK_Odometry():
         
         rospy.loginfo("Current velocity: %f, %f, %f", 
                       pos_msg.twist.twist.linear.x, pos_msg.twist.twist.linear.y, pos_msg.twist.twist.linear.z)
+        
+        # add csv log
+        new_row_pos_vel = {'time':current_time, 
+                            'x':x, 
+                            'y':y, 
+                            'z':z,
+                            'vel_x': vel_x_tank,
+                            'vel_y': vel_y_tank,
+                            'vel_z': vel_z_tank}
+        
+        with open('/home/dlmux/WorkSpace/data/Apriltag_test_ekf.csv', 'a', newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=new_row_pos_vel.keys())
+            writer.writerow(new_row_pos_vel)
         
         self.tank_pos_pub.publish(pos_msg)
 
