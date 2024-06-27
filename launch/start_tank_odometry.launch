@@ -1,4 +1,7 @@
 <launch>
   <node pkg="tank_odometry" type="tank_node.py" name="tank_node" clear_params="true" output="screen" >
   </node>
+  <!-- pose apriltag -->
+  <node pkg="pose_apriltag" type="pose_apriltag" name="pose_node" output="screen">
+    </node>
 </launch>
