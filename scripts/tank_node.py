@@ -64,14 +64,12 @@ class TANK_Odometry():
                                           tag.pos.z]))
             #
             z_total.append(tag.pos.z)
-            print("test x, y, z: ")
-            print(tag.pos.x)
-            print(tag.pos.y)
-            print(tag.pos.z)
+            # print("test x, y, z: ")
+            # print(tag.pos.x)
+            # print(tag.pos.y)
+            # print(tag.pos.z)
             
             measurements[i, 0] = np.linalg.norm(tag_distance_cam)
-            
-            
             index = np.where(self.tags[:, 0] == tag_id)
 
             measurements[i, 1:4] = self.tags[index, 1:4]
