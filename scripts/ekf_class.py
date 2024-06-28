@@ -98,11 +98,13 @@ class ExtendedKalmanFilter(object):
             h_jac_x2 = 0.5 * 2.0 * (x[1] - tag_pos[1]) / r_dist
             # dh /dx3
             h_jac_x3 = 0.5 * 2.0 * (x[2] - tag_pos[2]) / r_dist
+            
             print(h_jac_x1)
             print(h_jac_x2)
             print(h_jac_x3)
             
             h_jac[i, 0:3] = [h_jac_x1, h_jac_x2, h_jac_x3]
+            print(h_jac[i, 0:3])
 
         return h_jac  # dim [num_tag X 3]
 
