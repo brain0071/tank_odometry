@@ -83,7 +83,13 @@ class TANK_Odometry():
         
         # z-axis use mean
         z_mean = sum(z_total) / len(z_total)
-        z = z_mean
+        # z = z_mean
+        
+        # z-axis use min value
+        z = min(z_total)
+        
+        if z < 0:
+            rospy.logerr("Z axis value ERROR!")
         
         # get velocity in body Coordinate system (update 5hz)
         t = current_time - self.last_time
